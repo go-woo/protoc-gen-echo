@@ -48,11 +48,6 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 	}
 	{{- end}}
 
-	//sm, _ := json.Marshal(payload)
-	//fmt.Fprintf(os.Stderr, "payload = %v\n", string(sm))
-	//sm1, _ := json.Marshal(pathParam)
-	//fmt.Fprintf(os.Stderr, "pathParam = %v\n", string(sm1))
-
 	return c.JSON(http.StatusOK, &reply)
 }
 {{end}}
