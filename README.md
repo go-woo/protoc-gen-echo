@@ -42,4 +42,4 @@ generated or overwritten after that, because the business logic code you added i
 cd example && go run main.go
 ```
 ## Todo
-[x] Query parameter
+- [ ] Query parameter
