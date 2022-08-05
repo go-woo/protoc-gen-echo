@@ -12,16 +12,12 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
 
-func Register{{.ServiceType}}HTTPServer(e *echo.Echo) {
-	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+func Register{{.ServiceType}}Router(e *echo.Echo) {
 	{{- range .Methods}}
 	e.{{.Method}}("{{.Path}}", _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler)
 	{{- end}}
@@ -76,34 +72,20 @@ func {{$svrType}}{{.Name}}BusinessHandler(pathParam *map[string]string, payload 
 {{end}}
 `
 
-//{{- if .HasVars}}
-//func {{$svrType}}{{.Name}}BusinessHandler(in {{.Request}}, pathparam *map[string]string) ({{.Reply}}, error) {
-//// Here can put logic
-//return {{.Reply}}{}, nil
-//}
-//{{- else}}
-//func {{$svrType}}{{.Name}}BusinessHandler(in {{.Request}}) ({{.Reply}}, error) {
-//// Here can put logic
-//return {{.Reply}}{}, nil
-//}
-//{{- end}}
-
 type serviceDesc struct {
 	ServiceType string // Greeter
-	ServiceName string // helloworld.Greeter
-	Metadata    string // api/helloworld/helloworld.proto
+	ServiceName string // example.Greeter
+	Metadata    string // example/v1/greeter.proto
 	Methods     []*methodDesc
 	MethodSets  map[string]*methodDesc
 }
 
 type methodDesc struct {
-	// method
 	Name         string
 	OriginalName string // The parsed original name
 	Num          int
 	Request      string
 	Reply        string
-	// http_rule
 	Path         string
 	Method       string
 	HasVars      bool

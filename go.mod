@@ -1,4 +1,4 @@
-module protoc-gen-echo
+module github.com/go-woo/protoc-gen-echo
 
 go 1.18
 

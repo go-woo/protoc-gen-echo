@@ -3,14 +3,15 @@ This is a protocol plug-in that generates [echo](https://github.com/labstack/ech
 from proto file.
 ## Installation
 ### Ubuntu
-####Pre installation
+#### Pre installation
 ```
 sudo apt install protobuf-compiler make
 ```
 
-#### Running example
+#### Generate example and run
 ```
 make example
+cd example && go run main.go
 ```
 ## Generate
 ```
@@ -33,13 +34,13 @@ return YourReply{}, nil
 ```
 All need func can be found in `your_xxxx_router.pb.go`.
 
-### :bangbang: Attention
+### :bangbang: Caution
 
 `your_xxxx_handler.pb.go` was generated only when it is generated for the first time, and will not be 
 generated or overwritten after that, because the business logic code you added is already in it.
-## Run
-``` 
-cd example && go run main.go
-```
+
 ## Todo
 - [ ] Query parameter
+- [ ] Jwt and scope
+- [ ] Casbin and scope
+- [ ] error_reason
