@@ -14,10 +14,10 @@ make example
 ```
 ## Generate
 ```
-$ protoc --proto_ path=. \
-    --proto_ path=./ third_ party \
-    --go_ out=paths=source_ relative:. \
-    --echo_ out=paths=source_ relative:. \
+$ protoc --proto_path=. \
+    --proto_path=./third_party \
+    --go_out=paths=source_relative:. \
+    --echo_out=paths=source_relative:. \
     $(your_xxxx.proto)
 ```
 [protoc](https://github.com/protocolbuffers/protobuf) help for using protocol.
