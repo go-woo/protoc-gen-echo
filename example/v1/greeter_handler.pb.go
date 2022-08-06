@@ -6,32 +6,72 @@
 
 package v1
 
-func GreeterSayHelloBusinessHandler(pathParam *map[string]string, payload *HelloRequest) (HelloReply, error) {
-	// Here can put your business logic
+import (
+	"encoding/json"
+	"fmt"
+)
+
+func GreeterSayHelloBusinessHandler(req *HelloRequest) (HelloReply, error) {
+	// Here can put your business logic,protoc-gen-ent soon coming
+	//Below is example business logic code
+
+	reqJson, err := json.Marshal(req)
+	if err != nil {
+		return HelloReply{}, err
+	}
+	fmt.Printf("Got HelloRequest is: %v\n", string(reqJson))
 
 	return HelloReply{}, nil
 }
 
-func GreeterCreateUserBusinessHandler(pathParam *map[string]string, payload *UserRequest) (UserReply, error) {
-	// Here can put your business logic
+func GreeterCreateUserBusinessHandler(req *UserRequest) (UserReply, error) {
+	// Here can put your business logic,protoc-gen-ent soon coming
+	//Below is example business logic code
+
+	reqJson, err := json.Marshal(req)
+	if err != nil {
+		return UserReply{}, err
+	}
+	fmt.Printf("Got UserRequest is: %v\n", string(reqJson))
 
 	return UserReply{}, nil
 }
 
-func GreeterUpdateUserBusinessHandler(pathParam *map[string]string, payload *UserRequest) (UserReply, error) {
-	// Here can put your business logic
+func GreeterUpdateUserBusinessHandler(req *UserRequest) (UserReply, error) {
+	// Here can put your business logic,protoc-gen-ent soon coming
+	//Below is example business logic code
+
+	reqJson, err := json.Marshal(req)
+	if err != nil {
+		return UserReply{}, err
+	}
+	fmt.Printf("Got UserRequest is: %v\n", string(reqJson))
 
 	return UserReply{}, nil
 }
 
-func GreeterDeleteUserBusinessHandler(pathParam *map[string]string, payload *UserRequest) (UserReply, error) {
-	// Here can put your business logic
+func GreeterDeleteUserBusinessHandler(req *UserRequest) (UserReply, error) {
+	// Here can put your business logic,protoc-gen-ent soon coming
+	//Below is example business logic code
+
+	reqJson, err := json.Marshal(req)
+	if err != nil {
+		return UserReply{}, err
+	}
+	fmt.Printf("Got UserRequest is: %v\n", string(reqJson))
 
 	return UserReply{}, nil
 }
 
-func GreeterListUsersBusinessHandler(pathParam *map[string]string, payload *UserRequest) (UserReplys, error) {
-	// Here can put your business logic
+func GreeterListUsersBusinessHandler(req *UserRequest) (UserReplys, error) {
+	// Here can put your business logic,protoc-gen-ent soon coming
+	//Below is example business logic code
+
+	reqJson, err := json.Marshal(req)
+	if err != nil {
+		return UserReplys{}, err
+	}
+	fmt.Printf("Got UserRequest is: %v\n", string(reqJson))
 
 	return UserReplys{}, nil
 }

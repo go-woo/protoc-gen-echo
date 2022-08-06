@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -98,18 +97,14 @@ func genService(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 		if rule != nil && ok {
 			for _, bind := range rule.AdditionalBindings {
 				sd.Methods = append(sd.Methods, buildHTTPRule(g, method, bind))
-				//debugMethods(sd.Methods, "AdditionalBindings")
 			}
 			sd.Methods = append(sd.Methods, buildHTTPRule(g, method, rule))
-			//debugMethods(sd.Methods, "rule")
 		} else if !omitempty {
 			path := fmt.Sprintf("/%s/%s", service.Desc.FullName(), method.Desc.Name())
 			sd.Methods = append(sd.Methods, buildMethodDesc(g, method, "POST", path))
-			//debugMethods(sd.Methods, "!omitempty")
 		}
 	}
 	if len(sd.Methods) != 0 {
-		//debugMethods(sd.Methods, "total")
 		g.P(sd.execute(tpl))
 	}
 }
@@ -189,12 +184,17 @@ func buildHTTPRule(g *protogen.GeneratedFile, m *protogen.Method, rule *annotati
 func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path string) *methodDesc {
 	defer func() { methodSets[m.GoName]++ }()
 
-	vars := buildPathVars(path)
+	//get all rpc-method's input mapping XxxxRequest all field name and conv to GoName
+	var fields []*RequestField
+	lenFields := m.Desc.Input().Fields().Len()
+	for i := 0; i < lenFields; i++ {
+		fields = append(fields, &RequestField{Name: camelCaseVars(
+			string(m.Desc.Input().Fields().Get(i).Name()))})
+	}
 
-	var pps []*PathParam
+	vars := buildPathVars(path)
 	for v, _ := range vars {
 		path = replacePath(v, "", path)
-		pps = append(pps, &PathParam{PathName: camelCase(v), PathValue: v})
 	}
 
 	return &methodDesc{
@@ -206,7 +206,7 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 		Path:         path,
 		Method:       method,
 		HasVars:      len(vars) > 0,
-		PathParams:   pps,
+		Fields:       fields,
 	}
 }
 
@@ -320,12 +320,3 @@ func protocVersion(gen *protogen.Plugin) string {
 }
 
 const deprecationComment = "// Deprecated: Do not use."
-
-func debugMethods(md []*methodDesc, left string) {
-	if os.Getenv("DEBUG") != "1" {
-		return
-	}
-
-	sm, _ := json.Marshal(md)
-	fmt.Fprintf(os.Stderr, "%v = %v\n", left, string(sm))
-}

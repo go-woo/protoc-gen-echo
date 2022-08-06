@@ -10,6 +10,7 @@ var routerTemplate = `
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -25,28 +26,22 @@ func Register{{.ServiceType}}Router(e *echo.Echo) {
 
 {{range .Methods}}
 func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
-	var payload *{{.Request}}
-	payload = nil
-	var pathParam map[string]string
-	pathParam = nil
+	var req *{{.Request}} = new({{.Request}})
 
 	{{- if .HasBody}}
-	payload = new({{.Request}})
-	if err := c.Bind(payload); err != nil {
+	if err := c.Bind(req); err != nil {
 		return err
 	}
+	{{- else}}
+	{{- range .Fields}}
+	req.{{.Name}} = c.Param(strings.ToLower("{{.Name}}"))
+	{{- end}}
 	{{- end}}
 
-	{{- if .HasVars}}
-	pathParam = make(map[string]string)
-	{{- range .PathParams}}
-	pathParam["{{.PathName}}"] = c.Param("{{.PathValue}}")
-	{{- end}}
-	reply, err := {{$svrType}}{{.Name}}BusinessHandler(&pathParam, payload)
+	reply, err := {{$svrType}}{{.Name}}BusinessHandler(req)
 	if err != nil {
 		return err
 	}
-	{{- end}}
 
 	return c.JSON(http.StatusOK, &reply)
 }
@@ -55,12 +50,23 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 
 var handlerTemplate = `
 
+import (
+	"encoding/json"
+	"fmt"
+)
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
 
 {{range .Methods}}
-func {{$svrType}}{{.Name}}BusinessHandler(pathParam *map[string]string, payload *{{.Request}}) ({{.Reply}}, error) {
-	// Here can put your business logic
+func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error) {
+	// Here can put your business logic,protoc-gen-ent soon coming
+	//Below is example business logic code
+
+	reqJson, err := json.Marshal(req)
+	if err != nil {
+		return {{.Reply}}{}, err
+	}
+	fmt.Printf("Got {{.Request}} is: %v\n", string(reqJson))
 
 	return {{.Reply}}{}, nil
 }
@@ -84,15 +90,14 @@ type methodDesc struct {
 	Path         string
 	Method       string
 	HasVars      bool
-	PathParams   []*PathParam
 	HasBody      bool
 	Body         string
 	ResponseBody string
+	Fields       []*RequestField
 }
 
-type PathParam struct {
-	PathName  string
-	PathValue string
+type RequestField struct {
+	Name string
 }
 
 func (s *serviceDesc) execute(tpl string) string {
@@ -100,8 +105,6 @@ func (s *serviceDesc) execute(tpl string) string {
 	for _, m := range s.Methods {
 		s.MethodSets[m.Name] = m
 	}
-	//sm, _ := json.Marshal(s.MethodSets)
-	//fmt.Fprintf(os.Stderr, "1====s.MethodSets = \n%v\n", string(sm))
 
 	buf := new(bytes.Buffer)
 	tmpl, err := template.New("http").Parse(strings.TrimSpace(tpl))
@@ -111,6 +114,5 @@ func (s *serviceDesc) execute(tpl string) string {
 	if err := tmpl.Execute(buf, s); err != nil {
 		panic(err)
 	}
-	//fmt.Fprintf(os.Stderr, "2======buf=\n%v", strings.Trim(buf.String(), "\r\n"))
 	return strings.Trim(buf.String(), "\r\n")
 }
