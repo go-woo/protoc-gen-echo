@@ -11,11 +11,11 @@ If you want to create a [Echo](https://github.com/labstack/echo)'s http api
 
 ** `protoc-gen-ent` will soon coming. About ent you can find more help from [ent](https://github.com/ent/ent).
 ## Quick start
-### Step 1: Pre-installation on ubuntu
+### Step 0: Pre-installation on ubuntu
 ```
 sudo apt install protobuf-compiler make
 ```
-* Edit `./example/v1/greeter.proto`
+### Step 1: Edit `./example/v1/greeter.proto`
 ```
 service Greeter {
   // Sends a greeting
@@ -56,9 +56,8 @@ More help can be found in [protoc](https://github.com/protocolbuffers/protobuf).
 Your business logic stubs has been generated in `your_xxxx_handler.pb.go`,
 You can edit business logic in stubs.
 ```
-func $(YourService)$(RpcName)BusinessHandler(pathParam *map[string]string, payload *YourRequest) 
-	(YourReply, error) {
-	// Here can put your business logic
+func $(YourService)$(RpcName)BusinessHandler(payload *YourRequest) (YourReply, error) {
+	// Here can put your business logic,protoc-gen-ent soon coming
 	return YourReply{}, nil
 }
 ```
