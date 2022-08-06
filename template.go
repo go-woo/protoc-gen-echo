@@ -32,10 +32,15 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
-	{{- else}}
-	{{- range .Fields}}
-	req.{{.Name}} = c.Param(strings.ToLower("{{.Name}}"))
 	{{- end}}
+
+	{{- range .Fields}}
+	if c.QueryParam(strings.ToLower("{{.Name}}")) != "" {
+		req.{{.Name}} = c.QueryParam(strings.ToLower("{{.Name}}"))
+	}
+	if c.Param(strings.ToLower("{{.Name}}")) != "" {
+		req.{{.Name}} = c.Param(strings.ToLower("{{.Name}}"))
+	}
 	{{- end}}
 
 	reply, err := {{$svrType}}{{.Name}}BusinessHandler(req)

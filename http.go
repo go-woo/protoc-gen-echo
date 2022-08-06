@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"os"
 	"regexp"
 	"strings"
@@ -178,6 +180,9 @@ func buildHTTPRule(g *protogen.GeneratedFile, m *protogen.Method, rule *annotati
 	} else if responseBody != "" {
 		md.ResponseBody = "." + camelCaseVars(responseBody)
 	}
+	mdj, _ := json.Marshal(md)
+	fmt.Fprintf(os.Stderr, "methodDesc===========%v\n", string(mdj))
+
 	return md
 }
 
@@ -193,6 +198,36 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 	}
 
 	vars := buildPathVars(path)
+
+	for v, s := range vars {
+		fields := m.Input.Desc.Fields()
+
+		if s != nil {
+			path = replacePath(v, *s, path)
+		}
+		for _, field := range strings.Split(v, ".") {
+			if strings.TrimSpace(field) == "" {
+				continue
+			}
+			if strings.Contains(field, ":") {
+				field = strings.Split(field, ":")[0]
+			}
+			fd := fields.ByName(protoreflect.Name(field))
+			if fd == nil {
+				fmt.Fprintf(os.Stderr, "\u001B[31mERROR\u001B[m: The corresponding field '%s' declaration in message could not be found in '%s'\n", v, path)
+				os.Exit(2)
+			}
+			if fd.IsMap() {
+				fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a map.\n", v)
+			} else if fd.IsList() {
+				fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a list.\n", v)
+			} else if fd.Kind() == protoreflect.MessageKind || fd.Kind() == protoreflect.GroupKind {
+				//fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a message or group follow ent.\n", v)
+				fields = fd.Message().Fields()
+			}
+		}
+	}
+
 	for v, _ := range vars {
 		path = replacePath(v, "", path)
 	}

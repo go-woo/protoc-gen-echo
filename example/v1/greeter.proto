@@ -17,7 +17,7 @@ service Greeter {
   // Create a user
   rpc CreateUser (UserRequest) returns (UserReply) {
     option (google.api.http) = {
-      post: "/usr/{name}/pwd/{passwd}"
+      post: "/usr/{phone}"
       body: "*"
     };
   }
@@ -25,7 +25,7 @@ service Greeter {
   // Update a user
   rpc UpdateUser (UserRequest) returns (UserReply) {
     option (google.api.http) = {
-      patch: "/usr/{name}/pwd/{passwd}"
+      patch: "/usr/{phone}"
       body: "*"
     };
   }
@@ -33,14 +33,14 @@ service Greeter {
   // Delete a user
   rpc DeleteUser (UserRequest) returns (UserReply) {
     option (google.api.http) = {
-      delete: "/usr/{name}/pwd/{passwd}"
+      delete: "/usr/{phone}"
     };
   }
 
   // Get user list
   rpc ListUsers (UserRequest) returns (UserReplys) {
     option (google.api.http) = {
-      get: "/usr/{name}/pwd/{passwd}"
+      get: "/usr/{phone}"
     };
   }
 }

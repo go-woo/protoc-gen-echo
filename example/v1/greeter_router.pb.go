@@ -15,16 +15,26 @@ import (
 
 func RegisterGreeterRouter(e *echo.Echo) {
 	e.GET("/helloworld/:name/hi/:nice", _Greeter_SayHello0_HTTP_Handler)
-	e.POST("/usr/:name/pwd/:passwd", _Greeter_CreateUser0_HTTP_Handler)
-	e.PATCH("/usr/:name/pwd/:passwd", _Greeter_UpdateUser0_HTTP_Handler)
-	e.DELETE("/usr/:name/pwd/:passwd", _Greeter_DeleteUser0_HTTP_Handler)
-	e.GET("/usr/:name/pwd/:passwd", _Greeter_ListUsers0_HTTP_Handler)
+	e.POST("/usr/:phone", _Greeter_CreateUser0_HTTP_Handler)
+	e.PATCH("/usr/:phone", _Greeter_UpdateUser0_HTTP_Handler)
+	e.DELETE("/usr/:phone", _Greeter_DeleteUser0_HTTP_Handler)
+	e.GET("/usr/:phone", _Greeter_ListUsers0_HTTP_Handler)
 }
 
 func _Greeter_SayHello0_HTTP_Handler(c echo.Context) error {
 	var req *HelloRequest = new(HelloRequest)
-	req.Name = c.Param(strings.ToLower("Name"))
-	req.Nice = c.Param(strings.ToLower("Nice"))
+	if c.QueryParam(strings.ToLower("Name")) != "" {
+		req.Name = c.QueryParam(strings.ToLower("Name"))
+	}
+	if c.Param(strings.ToLower("Name")) != "" {
+		req.Name = c.Param(strings.ToLower("Name"))
+	}
+	if c.QueryParam(strings.ToLower("Nice")) != "" {
+		req.Nice = c.QueryParam(strings.ToLower("Nice"))
+	}
+	if c.Param(strings.ToLower("Nice")) != "" {
+		req.Nice = c.Param(strings.ToLower("Nice"))
+	}
 
 	reply, err := GreeterSayHelloBusinessHandler(req)
 	if err != nil {
@@ -38,6 +48,18 @@ func _Greeter_CreateUser0_HTTP_Handler(c echo.Context) error {
 	var req *UserRequest = new(UserRequest)
 	if err := c.Bind(req); err != nil {
 		return err
+	}
+	if c.QueryParam(strings.ToLower("Phone")) != "" {
+		req.Phone = c.QueryParam(strings.ToLower("Phone"))
+	}
+	if c.Param(strings.ToLower("Phone")) != "" {
+		req.Phone = c.Param(strings.ToLower("Phone"))
+	}
+	if c.QueryParam(strings.ToLower("Email")) != "" {
+		req.Email = c.QueryParam(strings.ToLower("Email"))
+	}
+	if c.Param(strings.ToLower("Email")) != "" {
+		req.Email = c.Param(strings.ToLower("Email"))
 	}
 
 	reply, err := GreeterCreateUserBusinessHandler(req)
@@ -53,6 +75,18 @@ func _Greeter_UpdateUser0_HTTP_Handler(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
+	if c.QueryParam(strings.ToLower("Phone")) != "" {
+		req.Phone = c.QueryParam(strings.ToLower("Phone"))
+	}
+	if c.Param(strings.ToLower("Phone")) != "" {
+		req.Phone = c.Param(strings.ToLower("Phone"))
+	}
+	if c.QueryParam(strings.ToLower("Email")) != "" {
+		req.Email = c.QueryParam(strings.ToLower("Email"))
+	}
+	if c.Param(strings.ToLower("Email")) != "" {
+		req.Email = c.Param(strings.ToLower("Email"))
+	}
 
 	reply, err := GreeterUpdateUserBusinessHandler(req)
 	if err != nil {
@@ -64,8 +98,18 @@ func _Greeter_UpdateUser0_HTTP_Handler(c echo.Context) error {
 
 func _Greeter_DeleteUser0_HTTP_Handler(c echo.Context) error {
 	var req *UserRequest = new(UserRequest)
-	req.Phone = c.Param(strings.ToLower("Phone"))
-	req.Email = c.Param(strings.ToLower("Email"))
+	if c.QueryParam(strings.ToLower("Phone")) != "" {
+		req.Phone = c.QueryParam(strings.ToLower("Phone"))
+	}
+	if c.Param(strings.ToLower("Phone")) != "" {
+		req.Phone = c.Param(strings.ToLower("Phone"))
+	}
+	if c.QueryParam(strings.ToLower("Email")) != "" {
+		req.Email = c.QueryParam(strings.ToLower("Email"))
+	}
+	if c.Param(strings.ToLower("Email")) != "" {
+		req.Email = c.Param(strings.ToLower("Email"))
+	}
 
 	reply, err := GreeterDeleteUserBusinessHandler(req)
 	if err != nil {
@@ -77,8 +121,18 @@ func _Greeter_DeleteUser0_HTTP_Handler(c echo.Context) error {
 
 func _Greeter_ListUsers0_HTTP_Handler(c echo.Context) error {
 	var req *UserRequest = new(UserRequest)
-	req.Phone = c.Param(strings.ToLower("Phone"))
-	req.Email = c.Param(strings.ToLower("Email"))
+	if c.QueryParam(strings.ToLower("Phone")) != "" {
+		req.Phone = c.QueryParam(strings.ToLower("Phone"))
+	}
+	if c.Param(strings.ToLower("Phone")) != "" {
+		req.Phone = c.Param(strings.ToLower("Phone"))
+	}
+	if c.QueryParam(strings.ToLower("Email")) != "" {
+		req.Email = c.QueryParam(strings.ToLower("Email"))
+	}
+	if c.Param(strings.ToLower("Email")) != "" {
+		req.Email = c.Param(strings.ToLower("Email"))
+	}
 
 	reply, err := GreeterListUsersBusinessHandler(req)
 	if err != nil {
