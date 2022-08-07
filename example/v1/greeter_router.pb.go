@@ -7,18 +7,41 @@
 package v1
 
 import (
+	"fmt"
+	"github.com/golang-jwt/jwt"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
 func RegisterGreeterRouter(e *echo.Echo) {
+	jwtKey := "dangerous"
+	if os.Getenv("JWT-KEY") != "" {
+		jwtKey = os.Getenv("JWT-KEY")
+	}
+	config := middleware.JWTConfig{
+		Claims:     &JwtCustomClaims{},
+		SigningKey: []byte(jwtKey),
+	}
+
+	restricted := e.Group("/restricted")
+	restricted.Use(middleware.JWTWithConfig(config))
+
+	restricted1 := e.Group("/restricted1")
+	restricted1.Use(middleware.JWTWithConfig(config))
+
 	e.GET("/helloworld/:name/hi/:nice", _Greeter_SayHello0_HTTP_Handler)
-	e.POST("/usr/:phone", _Greeter_CreateUser0_HTTP_Handler)
-	e.PATCH("/usr/:phone", _Greeter_UpdateUser0_HTTP_Handler)
+
+	e.POST("/login", _Greeter_CreateUser0_HTTP_Handler)
+
+	restricted.PATCH("/restricted/usr/:phone", _Greeter_UpdateUser0_HTTP_Handler)
 	e.DELETE("/usr/:phone", _Greeter_DeleteUser0_HTTP_Handler)
+
 	e.GET("/usr/:phone", _Greeter_ListUsers0_HTTP_Handler)
+
 }
 
 func _Greeter_SayHello0_HTTP_Handler(c echo.Context) error {
@@ -45,21 +68,27 @@ func _Greeter_SayHello0_HTTP_Handler(c echo.Context) error {
 }
 
 func _Greeter_CreateUser0_HTTP_Handler(c echo.Context) error {
-	var req *UserRequest = new(UserRequest)
+	var req *CreateUserRequest = new(CreateUserRequest)
 	if err := c.Bind(req); err != nil {
 		return err
 	}
-	if c.QueryParam(strings.ToLower("Phone")) != "" {
-		req.Phone = c.QueryParam(strings.ToLower("Phone"))
+	if c.FormValue(strings.ToLower("Username")) != "" {
+		req.Username = c.FormValue(strings.ToLower("Username"))
 	}
-	if c.Param(strings.ToLower("Phone")) != "" {
-		req.Phone = c.Param(strings.ToLower("Phone"))
+	if c.FormValue(strings.ToLower("Password")) != "" {
+		req.Password = c.FormValue(strings.ToLower("Password"))
 	}
-	if c.QueryParam(strings.ToLower("Email")) != "" {
-		req.Email = c.QueryParam(strings.ToLower("Email"))
+	if c.QueryParam(strings.ToLower("Username")) != "" {
+		req.Username = c.QueryParam(strings.ToLower("Username"))
 	}
-	if c.Param(strings.ToLower("Email")) != "" {
-		req.Email = c.Param(strings.ToLower("Email"))
+	if c.Param(strings.ToLower("Username")) != "" {
+		req.Username = c.Param(strings.ToLower("Username"))
+	}
+	if c.QueryParam(strings.ToLower("Password")) != "" {
+		req.Password = c.QueryParam(strings.ToLower("Password"))
+	}
+	if c.Param(strings.ToLower("Password")) != "" {
+		req.Password = c.Param(strings.ToLower("Password"))
 	}
 
 	reply, err := GreeterCreateUserBusinessHandler(req)
@@ -71,9 +100,24 @@ func _Greeter_CreateUser0_HTTP_Handler(c echo.Context) error {
 }
 
 func _Greeter_UpdateUser0_HTTP_Handler(c echo.Context) error {
-	var req *UserRequest = new(UserRequest)
+	var req *UpdateUserRequest = new(UpdateUserRequest)
 	if err := c.Bind(req); err != nil {
 		return err
+	}
+	if c.FormValue(strings.ToLower("Username")) != "" {
+		req.Username = c.FormValue(strings.ToLower("Username"))
+	}
+	if c.FormValue(strings.ToLower("Phone")) != "" {
+		req.Phone = c.FormValue(strings.ToLower("Phone"))
+	}
+	if c.FormValue(strings.ToLower("Email")) != "" {
+		req.Email = c.FormValue(strings.ToLower("Email"))
+	}
+	if c.QueryParam(strings.ToLower("Username")) != "" {
+		req.Username = c.QueryParam(strings.ToLower("Username"))
+	}
+	if c.Param(strings.ToLower("Username")) != "" {
+		req.Username = c.Param(strings.ToLower("Username"))
 	}
 	if c.QueryParam(strings.ToLower("Phone")) != "" {
 		req.Phone = c.QueryParam(strings.ToLower("Phone"))
@@ -87,6 +131,11 @@ func _Greeter_UpdateUser0_HTTP_Handler(c echo.Context) error {
 	if c.Param(strings.ToLower("Email")) != "" {
 		req.Email = c.Param(strings.ToLower("Email"))
 	}
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*JwtCustomClaims)
+	username := claims.Name
+	fmt.Printf("Got jwt name is: %v\n", username)
+	req.Username = username
 
 	reply, err := GreeterUpdateUserBusinessHandler(req)
 	if err != nil {

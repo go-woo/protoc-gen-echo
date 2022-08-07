@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -91,19 +90,39 @@ func genService(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 		ServiceName: string(service.Desc.FullName()),
 		Metadata:    file.Desc.Path(),
 	}
+
+	//get default host string=get JWT token URL
+	host := proto.GetExtension(service.Desc.Options(), annotations.E_DefaultHost).(string)
+	sd.LoginUrl = host
+
+	//get oauth scopes=JWT root path
+	oas := proto.GetExtension(service.Desc.Options(), annotations.E_OauthScopes).(string)
+	//fmt.Fprintf(os.Stderr, "score===========%v\n", oas)
+	scopes := strings.Split(oas, ",")
+	for _, scope := range scopes {
+		sd.JwtRootPaths = append(sd.JwtRootPaths,
+			&JwtRootPath{RootPath: strings.TrimPrefix(scope, "/")})
+	}
+	hasJwt := false
+	if len(scopes) > 0 {
+		hasJwt = true
+	}
+	sd.HasJwt = hasJwt
+
 	for _, method := range service.Methods {
 		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
 			continue
 		}
+		//authorization := false
 		rule, ok := proto.GetExtension(method.Desc.Options(), annotations.E_Http).(*annotations.HttpRule)
 		if rule != nil && ok {
 			for _, bind := range rule.AdditionalBindings {
-				sd.Methods = append(sd.Methods, buildHTTPRule(g, method, bind))
+				sd.Methods = append(sd.Methods, buildHTTPRule(g, method, bind, host, scopes))
 			}
-			sd.Methods = append(sd.Methods, buildHTTPRule(g, method, rule))
+			sd.Methods = append(sd.Methods, buildHTTPRule(g, method, rule, host, scopes))
 		} else if !omitempty {
 			path := fmt.Sprintf("/%s/%s", service.Desc.FullName(), method.Desc.Name())
-			sd.Methods = append(sd.Methods, buildMethodDesc(g, method, "POST", path))
+			sd.Methods = append(sd.Methods, buildMethodDesc(g, method, "POST", path, host, scopes))
 		}
 	}
 	if len(sd.Methods) != 0 {
@@ -126,7 +145,7 @@ func hasHTTPRule(services []*protogen.Service) bool {
 	return false
 }
 
-func buildHTTPRule(g *protogen.GeneratedFile, m *protogen.Method, rule *annotations.HttpRule) *methodDesc {
+func buildHTTPRule(g *protogen.GeneratedFile, m *protogen.Method, rule *annotations.HttpRule, host string, scopes []string) *methodDesc {
 	var (
 		path         string
 		method       string
@@ -156,7 +175,7 @@ func buildHTTPRule(g *protogen.GeneratedFile, m *protogen.Method, rule *annotati
 	}
 	body = rule.Body
 	responseBody = rule.ResponseBody
-	md := buildMethodDesc(g, m, method, path)
+	md := buildMethodDesc(g, m, method, path, host, scopes)
 	if method == "GET" || method == "DELETE" {
 		if body != "" {
 			_, _ = fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: %s %s body should not be declared.\n", method, path)
@@ -180,13 +199,11 @@ func buildHTTPRule(g *protogen.GeneratedFile, m *protogen.Method, rule *annotati
 	} else if responseBody != "" {
 		md.ResponseBody = "." + camelCaseVars(responseBody)
 	}
-	mdj, _ := json.Marshal(md)
-	fmt.Fprintf(os.Stderr, "methodDesc===========%v\n", string(mdj))
 
 	return md
 }
 
-func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path string) *methodDesc {
+func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path string, host string, scopes []string) *methodDesc {
 	defer func() { methodSets[m.GoName]++ }()
 
 	//get all rpc-method's input mapping XxxxRequest all field name and conv to GoName
@@ -195,6 +212,23 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 	for i := 0; i < lenFields; i++ {
 		fields = append(fields, &RequestField{Name: camelCaseVars(
 			string(m.Desc.Input().Fields().Get(i).Name()))})
+	}
+
+	inScope := false
+	isLogin := false
+	scope := ""
+
+	if path == host {
+		isLogin = true
+	}
+
+	for _, v := range scopes {
+		if strings.Index(path+"/", v+"/") == 0 {
+			inScope = true
+			scope = strings.TrimPrefix(v, "/")
+			path = strings.TrimPrefix(path, scope)
+			break
+		}
 	}
 
 	vars := buildPathVars(path)
@@ -222,8 +256,8 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 			} else if fd.IsList() {
 				fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a list.\n", v)
 			} else if fd.Kind() == protoreflect.MessageKind || fd.Kind() == protoreflect.GroupKind {
-				//fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a message or group follow ent.\n", v)
-				fields = fd.Message().Fields()
+				fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a message or group follow ent.\n", v)
+				//fields = fd.Message().Fields()
 			}
 		}
 	}
@@ -242,6 +276,10 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 		Method:       method,
 		HasVars:      len(vars) > 0,
 		Fields:       fields,
+		DefaultHost:  host,
+		InScope:      inScope,
+		Scope:        scope,
+		IsLogin:      isLogin,
 	}
 }
 

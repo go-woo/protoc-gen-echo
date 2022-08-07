@@ -3,29 +3,47 @@ syntax = "proto3";
 package v1;
 
 import "google/api/annotations.proto";
+//import "google/api/routing.proto";
+import "google/api/client.proto";
+//import "google/api/field_behavior.proto";
+//import "google/api/resource.proto";
+//import "google/protobuf/empty.proto";
+//import "google/protobuf/field_mask.proto";
+//import "google/protobuf/timestamp.proto";
 
 option go_package = "protoc-gen-echo/example/v1;v1";
 
 // The greeting service definition.
 service Greeter {
+  //get token URL
+  option (google.api.default_host) = "/login";
+  //need auth root path, can multi path
+  option (google.api.oauth_scopes) =
+      "/restricted,"
+      "/restricted1";
+
   // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply) {
     option (google.api.http) = {
       get: "/helloworld/{name}/hi/{nice}"
     };
   }
+
   // Create a user
-  rpc CreateUser (UserRequest) returns (UserReply) {
+  // The /login mapping service option (google.api.default_host) = "/login";
+  rpc CreateUser (CreateUserRequest) returns (CreateUserReply) {
     option (google.api.http) = {
-      post: "/usr/{phone}"
+      post: "/login"
       body: "*"
     };
   }
 
   // Update a user
-  rpc UpdateUser (UserRequest) returns (UserReply) {
+  // The /restricted/usr/{phone} need auth mapping service option (google.api.oauth_scopes) =
+  //      "/restricted";
+  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply) {
     option (google.api.http) = {
-      patch: "/usr/{phone}"
+      patch: "/restricted/usr/{phone}"
       body: "*"
     };
   }
@@ -55,6 +73,31 @@ message HelloRequest {
 message HelloReply {
   string message = 1;
 }
+
+// Login request must include username and password field.
+message CreateUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+// Login reply must include token field.
+message CreateUserReply {
+  string token = 1;
+}
+
+// The request message containing the user's name.
+message UpdateUserRequest {
+  string username = 1;
+  string phone = 2;
+  string email = 3;
+}
+
+// The response message containing the greetings
+message UpdateUserReply {
+  string message = 1;
+  string username = 2;
+}
+
 
 // The request message containing the user's name.
 message UserRequest {
