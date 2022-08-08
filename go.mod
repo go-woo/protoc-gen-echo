@@ -3,13 +3,13 @@ module github.com/go-woo/protoc-gen-echo
 go 1.18
 
 require (
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/labstack/echo/v4 v4.7.2
 	google.golang.org/genproto v0.0.0-20220801145646-83ce21fca29f
 	google.golang.org/protobuf v1.28.1
 )
 
 require (
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect

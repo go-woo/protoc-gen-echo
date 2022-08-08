@@ -7,10 +7,6 @@ import (
 	"testing"
 )
 
-func RegxTest(t *testing.T) {
-
-}
-
 func Test_buildPathVars(t *testing.T) {
 	md := buildPathVars("/hello/{name}/asd/{zxc}")
 	sm, _ := json.Marshal(md)

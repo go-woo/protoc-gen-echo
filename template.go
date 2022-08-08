@@ -7,7 +7,6 @@ import (
 )
 
 var routerTemplate = `
-
 import (
 	"fmt"
 	"github.com/golang-jwt/jwt"
@@ -18,19 +17,17 @@ import (
 
 	"github.com/labstack/echo/v4"
 )
-
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
 {{$hasJwt := .HasJwt}}
-
 func Register{{.ServiceType}}Router(e *echo.Echo) {
 	{{- if $hasJwt}}
 	jwtKey := "dangerous"
-	if os.Getenv("JWT-KEY") != "" {
-		jwtKey = os.Getenv("JWT-KEY")
+	if os.Getenv("JWTKEY") != "" {
+		jwtKey = os.Getenv("JWTKEY")
 	}
 	config := middleware.JWTConfig{
-		Claims:     &JwtCustomClaims{},
+		Claims:     &jwtCustomClaims{},
 		SigningKey: []byte(jwtKey),
 	}
 	{{end}}
@@ -73,7 +70,7 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 
 	{{- if .InScope}}
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	claims := user.Claims.(*jwtCustomClaims)
 	username := claims.Name
 	fmt.Printf("Got jwt name is: %v\n", username)
 	req.Username = username
@@ -90,7 +87,6 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 `
 
 var handlerTemplate = `
-
 import (
 	"encoding/json"
 	"fmt"
@@ -102,17 +98,6 @@ import (
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
 {{$hasJwt := .HasJwt}}
-
-{{if $hasJwt}}
-// jwtCustomClaims are custom claims extending default ones.
-// See https://github.com/golang-jwt/jwt for more examples
-type JwtCustomClaims struct {
-	Name  string ` + "`json:\"name\"`" + `
-	Admin bool   ` + "`json:\"admin\"`" + `
-	jwt.StandardClaims
-}
-{{end}}
-
 {{range .Methods}}
 func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error) {
 	{{- if .IsLogin}}
@@ -122,7 +107,7 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error)
 	}
 
 	// Set custom claims
-	claims := &JwtCustomClaims{
+	claims := &jwtCustomClaims{
 		"Hello World",
 		true,
 		jwt.StandardClaims{
@@ -134,11 +119,11 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Generate encoded token and send it as response.
-	jwtKey := "dangerous"
-	if os.Getenv("JWT-KEY") != "" {
-		jwtKey = os.Getenv("JWT-KEY")
+	jk := "dangerous"
+	if os.Getenv("JWTKEY") != "" {
+		jk = os.Getenv("JWTKEY")
 	}
-	t, err := token.SignedString([]byte(jwtKey))
+	t, err := token.SignedString([]byte(jk))
 	if err != nil {
 		return {{.Reply}}{ }, err
 	}
@@ -146,11 +131,11 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error)
 	// Here can put your business logic,protoc-gen-ent soon coming
 	//Below is example business logic code
 
-	reqJson, err := json.Marshal(req)
+	rj, err := json.Marshal(req)
 	if err != nil {
 		return {{.Reply}}{ }, err
 	}
-	fmt.Printf("Got {{.Request}} is: %v\n", string(reqJson))
+	fmt.Printf("Got {{.Request}} is: %v\n", string(rj))
 
 	{{- if .IsLogin}}
 	return {{.Reply}}{Token: "Bearer " + t}, nil
@@ -159,6 +144,19 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error)
 	{{end}}
 }
 {{end}}
+`
+var authTypeTemplate = `
+
+import "github.com/golang-jwt/jwt"
+
+// jwtCustomClaims are custom claims extending default ones.
+// See https://github.com/golang-jwt/jwt for more examples
+type jwtCustomClaims struct {
+	Name  string ` + "`json:\"name\"`" + `
+	Admin bool   ` + "`json:\"admin\"`" + `
+	jwt.StandardClaims
+}
+
 `
 
 type serviceDesc struct {

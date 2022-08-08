@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	version     = "v0.0.1"
+	version     = "v0.0.5"
 	showVersion = flag.Bool("version", false, "print the version and exit")
 	omitempty   = flag.Bool("omitempty", true, "omit if google.api is empty")
 )
@@ -29,6 +29,7 @@ func main() {
 			}
 			generateRouterFile(gen, f, *omitempty)
 			generateHandlerFile(gen, f, *omitempty)
+			generateAuthTypeFile(gen, f, *omitempty)
 		}
 		return nil
 	})

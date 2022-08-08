@@ -136,6 +136,18 @@ Or shell execute
 ```
 curl -X GET http://localhost:1323/helloworld/Lok-Tar/hi/Ogar
 ```
+### Step 5: Optional JWT support
+Service option   
+```
+//get token URL
+option (google.api.default_host) = "/login";
+//need auth root path, can multi path
+option (google.api.oauth_scopes) =
+"/restricted,"
+```
+was used for JWT describer.
+
+If you want to support JWT, can add it. Else you can comment it.
 
 ## :bangbang: Special notes
 

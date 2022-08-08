@@ -67,6 +67,35 @@ func generateHandlerFile(gen *protogen.Plugin, file *protogen.File, omitempty bo
 	return g
 }
 
+// generateAuthTypeFile generates a auth_type.pb.go.
+func generateAuthTypeFile(gen *protogen.Plugin, file *protogen.File, omitempty bool) *protogen.GeneratedFile {
+	if len(file.Services) == 0 || (omitempty && !hasHTTPRule(file.Services)) {
+		return nil
+	}
+	authFile := file.GeneratedFilenamePrefix + "auth_type.pb.go"
+	if last := strings.LastIndex(file.GeneratedFilenamePrefix, "/"); last != -1 {
+		authFile = file.GeneratedFilenamePrefix[0:last] + "/auth_type.pb.go"
+	}
+
+	//fmt.Fprintf(os.Stderr, "auth=======file%v\n", authFile)
+
+	g := gen.NewGeneratedFile(authFile, file.GoImportPath)
+	g.P("// Auth use data type.")
+	g.P("// versions:")
+	g.P(fmt.Sprintf("// - protoc-gen-echo %s", version))
+	g.P("// - protoc  ", protocVersion(gen))
+	if file.Proto.GetOptions().GetDeprecated() {
+		g.P("// ", file.Desc.Path(), " is a deprecated file.")
+	} else {
+		g.P("// source: ", file.Desc.Path())
+	}
+	g.P()
+	g.P("package ", file.GoPackageName)
+	g.P()
+	generateFileContent(gen, file, g, omitempty, authTypeTemplate)
+	return g
+}
+
 // generateFileContent generates the errors definitions, excluding the package statement.
 func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, omitempty bool, tpl string) {
 	if len(file.Services) == 0 {
