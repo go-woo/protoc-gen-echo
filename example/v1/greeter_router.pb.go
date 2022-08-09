@@ -50,35 +50,51 @@ func _Greeter_SayHello0_HTTP_Handler(c echo.Context) error {
 	var req *HelloRequest = new(HelloRequest)
 	if v := c.QueryParam("name"); v != "" {
 		if cv, err := strconv.ParseInt(v, 10, 32); err != nil {
-
 			return http.ErrNotSupported
-
 		} else {
-
 			req.Name = int32(cv)
-
 		}
-
 	}
 	if v := c.Param("name"); v != "" {
 		if cv, err := strconv.ParseInt(v, 10, 32); err != nil {
-
 			return http.ErrNotSupported
-
 		} else {
-
 			req.Name = int32(cv)
-
 		}
-
 	}
 	if v := c.QueryParam("nice"); v != "" {
 		req.Nice = v
-
 	}
 	if v := c.Param("nice"); v != "" {
 		req.Nice = v
-
+	}
+	if v := c.QueryParam("uid"); v != "" {
+		if cv, err := strconv.ParseInt(v, 10, 64); err != nil {
+			return http.ErrNotSupported
+		} else {
+			req.Uid = cv
+		}
+	}
+	if v := c.Param("uid"); v != "" {
+		if cv, err := strconv.ParseInt(v, 10, 64); err != nil {
+			return http.ErrNotSupported
+		} else {
+			req.Uid = cv
+		}
+	}
+	if v := c.QueryParam("authed"); v != "" {
+		if cv, err := strconv.ParseBool(v); err != nil {
+			return http.ErrNotSupported
+		} else {
+			req.Authed = cv
+		}
+	}
+	if v := c.Param("authed"); v != "" {
+		if cv, err := strconv.ParseBool(v); err != nil {
+			return http.ErrNotSupported
+		} else {
+			req.Authed = cv
+		}
 	}
 	reply, err := GreeterSayHelloBusinessHandler(req)
 	if err != nil {
@@ -94,19 +110,15 @@ func _Greeter_CreateUser0_HTTP_Handler(c echo.Context) error {
 	}
 	if v := c.QueryParam("username"); v != "" {
 		req.Username = v
-
 	}
 	if v := c.Param("username"); v != "" {
 		req.Username = v
-
 	}
 	if v := c.QueryParam("password"); v != "" {
 		req.Password = v
-
 	}
 	if v := c.Param("password"); v != "" {
 		req.Password = v
-
 	}
 	reply, err := GreeterCreateUserBusinessHandler(req)
 	if err != nil {
@@ -122,27 +134,21 @@ func _Greeter_UpdateUser0_HTTP_Handler(c echo.Context) error {
 	}
 	if v := c.QueryParam("username"); v != "" {
 		req.Username = v
-
 	}
 	if v := c.Param("username"); v != "" {
 		req.Username = v
-
 	}
 	if v := c.QueryParam("phone"); v != "" {
 		req.Phone = v
-
 	}
 	if v := c.Param("phone"); v != "" {
 		req.Phone = v
-
 	}
 	if v := c.QueryParam("email"); v != "" {
 		req.Email = v
-
 	}
 	if v := c.Param("email"); v != "" {
 		req.Email = v
-
 	}
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*jwtCustomClaims)
@@ -161,19 +167,15 @@ func _Greeter_DeleteUser0_HTTP_Handler(c echo.Context) error {
 	var req *UserRequest = new(UserRequest)
 	if v := c.QueryParam("phone"); v != "" {
 		req.Phone = v
-
 	}
 	if v := c.Param("phone"); v != "" {
 		req.Phone = v
-
 	}
 	if v := c.QueryParam("email"); v != "" {
 		req.Email = v
-
 	}
 	if v := c.Param("email"); v != "" {
 		req.Email = v
-
 	}
 	reply, err := GreeterDeleteUserBusinessHandler(req)
 	if err != nil {
@@ -186,19 +188,15 @@ func _Greeter_ListUsers0_HTTP_Handler(c echo.Context) error {
 	var req *UserRequest = new(UserRequest)
 	if v := c.QueryParam("phone"); v != "" {
 		req.Phone = v
-
 	}
 	if v := c.Param("phone"); v != "" {
 		req.Phone = v
-
 	}
 	if v := c.QueryParam("email"); v != "" {
 		req.Email = v
-
 	}
 	if v := c.Param("email"); v != "" {
 		req.Email = v
-
 	}
 	reply, err := GreeterListUsersBusinessHandler(req)
 	if err != nil {

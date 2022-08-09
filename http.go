@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -242,8 +241,6 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 	for i := 0; i < lenFields; i++ {
 		fld := m.Desc.Input().Fields().Get(i)
 		ce := buildExpr(string(fld.Name()), camelCaseVars(string(fld.Name())), fld)
-		ces, _ := json.Marshal(ce)
-		fmt.Fprintf(os.Stderr, "buildExpr===%v\n", string(ces))
 		rf = append(rf, &RequestField{
 			ProtoName: string(fld.Name()),
 			GoName:    camelCaseVars(string(fld.Name())),
@@ -251,7 +248,6 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 			ConvExpr:  ce,
 		})
 	}
-	//fmt.Fprintf(os.Stderr, "")
 
 	inScope := false
 	isLogin := false
@@ -353,77 +349,65 @@ func replacePath(name string, value string, path string) string {
 	return path
 }
 
-func buildExpr(protoName, goName string, fd protoreflect.FieldDescriptor) []*Exprs {
-	var exprs []*Exprs
+func buildExpr(protoName, goName string, fd protoreflect.FieldDescriptor) string {
 	switch fd.Kind() {
 	case protoreflect.BoolKind:
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("if cv, err := strconv.ParseBool(v); err != nil {")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	return http.ErrNotSupported")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}else{")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	req.%v = cv", goName)})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}")})
-		return exprs
-	case protoreflect.EnumKind:
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("if v, err := strconv.ParseInt(v, 10, 32); err != nil {")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	return http.ErrNotSupported")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}else{")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	req.%v = int32(cv)", goName)})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}")})
-		return exprs
+		return fmt.Sprintf(`if cv, err := strconv.ParseBool(v); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case protoreflect.EnumKind: //Todo
+		return fmt.Sprintf("return http.ErrNotSupported")
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("if cv, err := strconv.ParseInt(v, 10, 32); err != nil {")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	return http.ErrNotSupported")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}else{")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	req.%v = int32(cv)", goName)})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}")})
-		return exprs
+		return fmt.Sprintf(`if cv, err := strconv.ParseInt(v, 10, 32); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = int32(cv)
+		}`, goName)
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("if cv, err := strconv.ParseInt(v, 10, 64); err != nil {")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	return http.ErrNotSupported")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}else{")})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	req.%v = cv", goName)})
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}")})
-		return exprs
-	//case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
-	//	v, err := strconv.ParseUint(value, 10, 32) //nolint:gomnd
-	//	if err != nil {
-	//		return protoreflect.Value{}, err
-	//	}
-	//	return protoreflect.ValueOfUint32(uint32(v)), nil
-	//case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-	//	v, err := strconv.ParseUint(value, 10, 64) //nolint:gomnd
-	//	if err != nil {
-	//		return protoreflect.Value{}, err
-	//	}
-	//	return protoreflect.ValueOfUint64(v), nil
-	//case protoreflect.FloatKind:
-	//	v, err := strconv.ParseFloat(value, 32) //nolint:gomnd
-	//	if err != nil {
-	//		return protoreflect.Value{}, err
-	//	}
-	//	return protoreflect.ValueOfFloat32(float32(v)), nil
-	//case protoreflect.DoubleKind:
-	//	v, err := strconv.ParseFloat(value, 64) //nolint:gomnd
-	//	if err != nil {
-	//		return protoreflect.Value{}, err
-	//	}
-	//	return protoreflect.ValueOfFloat64(v), nil
+		return fmt.Sprintf(`if cv, err := strconv.ParseInt(v, 10, 64); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
+		return fmt.Sprintf(`if cv, err := strconv.ParseUint(v, 10, 32); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = uint32(cv)
+		}`, goName)
+	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+		return fmt.Sprintf(`if cv, err := strconv.ParseUint(v, 10, 64); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case protoreflect.FloatKind:
+		return fmt.Sprintf(`if cv, err := strconv.ParseFloat(v, 32); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = float32(cv)
+		}`, goName)
+	case protoreflect.DoubleKind:
+		return fmt.Sprintf(`if cv, err := strconv.ParseFloat(v, 64); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = float32(cv)
+		}`, goName)
 	case protoreflect.StringKind:
-		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("req.%v = v", goName)})
-		return exprs
-	//case protoreflect.BytesKind:
-	//	v, err := base64.StdEncoding.DecodeString(value)
-	//	if err != nil {
-	//		return protoreflect.Value{}, err
-	//	}
-	//	return protoreflect.ValueOfBytes(v), nil
-	//case protoreflect.MessageKind, protoreflect.GroupKind:
-	//	return parseMessage(fd.Message(), value)
+		return fmt.Sprintf("req.%v = v", goName)
+	case protoreflect.BytesKind:
+		return fmt.Sprintf(`if cv, err := base64.StdEncoding.DecodeString(v); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case protoreflect.MessageKind, protoreflect.GroupKind: //Todo
+		return fmt.Sprintf("return http.ErrNotSupported")
 	default:
-		return exprs
+		return fmt.Sprintf("return http.ErrNotSupported")
 	}
-
-	return exprs
 }
 
 func camelCaseVars(s string) string {

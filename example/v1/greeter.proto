@@ -67,6 +67,8 @@ service Greeter {
 message HelloRequest {
   int32 name = 1;
   string nice = 2;
+  int64 uid = 3;
+  bool authed = 4;
 }
 
 // The response message containing the greetings

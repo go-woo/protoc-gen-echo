@@ -54,14 +54,10 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 	{{- end}}
 	{{- range .Fields}}
 	if v := c.QueryParam("{{.ProtoName}}"); v != "" {
-		{{- range .ConvExpr}}
-		{{.Expr}}
-		{{end}}
+		{{.ConvExpr}}
 	}
 	if v := c.Param("{{.ProtoName}}"); v != "" {
-		{{- range .ConvExpr}}
-		{{.Expr}}
-		{{end}}
+		{{.ConvExpr}}
 	}
 	{{- end}}
 	{{- if .InScope}}
@@ -191,11 +187,7 @@ type RequestField struct {
 	ProtoName string
 	GoName    string
 	GoType    string
-	ConvExpr  []*Exprs
-}
-
-type Exprs struct {
-	Expr string
+	ConvExpr  string
 }
 
 func (s *serviceDesc) execute(tpl string) string {
