@@ -1,4 +1,4 @@
-## What is protoc-gen-echo(PGE)?
+## What is protoc-gen-echo?
 `protoc-gen-echo` is a protoc plug-in that generates [Echo](https://github.com/labstack/echo) server code 
 from proto file.
 
@@ -157,7 +157,7 @@ If you want to support JWT, can add it. Else you can comment it.
 
 * Validate. Single source(proto) is the most important means to ensure consistency. protobuf message filed validate can use [protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate).
 
-* `protoc-gen-echo` follow [google.api.httprule](https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api#http).
+* `protoc-gen-echo` follow [google.api.httprule](https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api#http).But only support simple type,Enum and message type planed.
 
 * [ent](https://github.com/ent/ent) still does not support message nesting, so proto http rule body must be *.
 
