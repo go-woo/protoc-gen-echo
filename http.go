@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -236,12 +237,21 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 	defer func() { methodSets[m.GoName]++ }()
 
 	//get all rpc-method's input mapping XxxxRequest all field name and conv to GoName
-	var fields []*RequestField
+	var rf []*RequestField
 	lenFields := m.Desc.Input().Fields().Len()
 	for i := 0; i < lenFields; i++ {
-		fields = append(fields, &RequestField{Name: camelCaseVars(
-			string(m.Desc.Input().Fields().Get(i).Name()))})
+		fld := m.Desc.Input().Fields().Get(i)
+		ce := buildExpr(string(fld.Name()), camelCaseVars(string(fld.Name())), fld)
+		ces, _ := json.Marshal(ce)
+		fmt.Fprintf(os.Stderr, "buildExpr===%v\n", string(ces))
+		rf = append(rf, &RequestField{
+			ProtoName: string(fld.Name()),
+			GoName:    camelCaseVars(string(fld.Name())),
+			GoType:    fld.Kind().String(),
+			ConvExpr:  ce,
+		})
 	}
+	//fmt.Fprintf(os.Stderr, "")
 
 	inScope := false
 	isLogin := false
@@ -285,8 +295,8 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 			} else if fd.IsList() {
 				fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a list.\n", v)
 			} else if fd.Kind() == protoreflect.MessageKind || fd.Kind() == protoreflect.GroupKind {
-				fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a message or group follow ent.\n", v)
-				//fields = fd.Message().Fields()
+				//fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: The field in path:'%s' shouldn't be a message or group follow ent.\n", v)
+				fields = fd.Message().Fields()
 			}
 		}
 	}
@@ -304,7 +314,7 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 		Path:         path,
 		Method:       method,
 		HasVars:      len(vars) > 0,
-		Fields:       fields,
+		Fields:       rf,
 		DefaultHost:  host,
 		InScope:      inScope,
 		Scope:        scope,
@@ -341,6 +351,79 @@ func replacePath(name string, value string, path string) string {
 		)
 	}
 	return path
+}
+
+func buildExpr(protoName, goName string, fd protoreflect.FieldDescriptor) []*Exprs {
+	var exprs []*Exprs
+	switch fd.Kind() {
+	case protoreflect.BoolKind:
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("if cv, err := strconv.ParseBool(v); err != nil {")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	return http.ErrNotSupported")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}else{")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	req.%v = cv", goName)})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}")})
+		return exprs
+	case protoreflect.EnumKind:
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("if v, err := strconv.ParseInt(v, 10, 32); err != nil {")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	return http.ErrNotSupported")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}else{")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	req.%v = int32(cv)", goName)})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}")})
+		return exprs
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("if cv, err := strconv.ParseInt(v, 10, 32); err != nil {")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	return http.ErrNotSupported")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}else{")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	req.%v = int32(cv)", goName)})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}")})
+		return exprs
+	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("if cv, err := strconv.ParseInt(v, 10, 64); err != nil {")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	return http.ErrNotSupported")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}else{")})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("	req.%v = cv", goName)})
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("}")})
+		return exprs
+	//case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
+	//	v, err := strconv.ParseUint(value, 10, 32) //nolint:gomnd
+	//	if err != nil {
+	//		return protoreflect.Value{}, err
+	//	}
+	//	return protoreflect.ValueOfUint32(uint32(v)), nil
+	//case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+	//	v, err := strconv.ParseUint(value, 10, 64) //nolint:gomnd
+	//	if err != nil {
+	//		return protoreflect.Value{}, err
+	//	}
+	//	return protoreflect.ValueOfUint64(v), nil
+	//case protoreflect.FloatKind:
+	//	v, err := strconv.ParseFloat(value, 32) //nolint:gomnd
+	//	if err != nil {
+	//		return protoreflect.Value{}, err
+	//	}
+	//	return protoreflect.ValueOfFloat32(float32(v)), nil
+	//case protoreflect.DoubleKind:
+	//	v, err := strconv.ParseFloat(value, 64) //nolint:gomnd
+	//	if err != nil {
+	//		return protoreflect.Value{}, err
+	//	}
+	//	return protoreflect.ValueOfFloat64(v), nil
+	case protoreflect.StringKind:
+		exprs = append(exprs, &Exprs{Expr: fmt.Sprintf("req.%v = v", goName)})
+		return exprs
+	//case protoreflect.BytesKind:
+	//	v, err := base64.StdEncoding.DecodeString(value)
+	//	if err != nil {
+	//		return protoreflect.Value{}, err
+	//	}
+	//	return protoreflect.ValueOfBytes(v), nil
+	//case protoreflect.MessageKind, protoreflect.GroupKind:
+	//	return parseMessage(fd.Message(), value)
+	default:
+		return exprs
+	}
+
+	return exprs
 }
 
 func camelCaseVars(s string) string {

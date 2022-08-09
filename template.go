@@ -9,14 +9,15 @@ import (
 var routerTemplate = `
 import (
 	"fmt"
-	"github.com/golang-jwt/jwt"
-	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
-	"strings"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/golang-jwt/jwt"
+	"github.com/labstack/echo/v4/middleware"
 )
+var _ strconv.NumError
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
 {{$hasJwt := .HasJwt}}
@@ -43,31 +44,26 @@ func Register{{.ServiceType}}Router(e *echo.Echo) {
 	{{end}}
 	{{- end}}
 }
-
 {{range .Methods}}
 func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 	var req *{{.Request}} = new({{.Request}})
-
 	{{- if .HasBody}}
 	if err := c.Bind(req); err != nil {
 		return err
 	}
+	{{- end}}
 	{{- range .Fields}}
-	if c.FormValue(strings.ToLower("{{.Name}}")) != "" {
-		req.{{.Name}} = c.FormValue(strings.ToLower("{{.Name}}"))
+	if v := c.QueryParam("{{.ProtoName}}"); v != "" {
+		{{- range .ConvExpr}}
+		{{.Expr}}
+		{{end}}
+	}
+	if v := c.Param("{{.ProtoName}}"); v != "" {
+		{{- range .ConvExpr}}
+		{{.Expr}}
+		{{end}}
 	}
 	{{- end}}
-	{{- end}}
-
-	{{- range .Fields}}
-	if c.QueryParam(strings.ToLower("{{.Name}}")) != "" {
-		req.{{.Name}} = c.QueryParam(strings.ToLower("{{.Name}}"))
-	}
-	if c.Param(strings.ToLower("{{.Name}}")) != "" {
-		req.{{.Name}} = c.Param(strings.ToLower("{{.Name}}"))
-	}
-	{{- end}}
-
 	{{- if .InScope}}
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*jwtCustomClaims)
@@ -75,12 +71,10 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 	fmt.Printf("Got jwt name is: %v\n", username)
 	req.Username = username
 	{{end}}
-
 	reply, err := {{$svrType}}{{.Name}}BusinessHandler(req)
 	if err != nil {
 		return err
 	}
-
 	return c.JSON(http.StatusOK, &reply)
 }
 {{end}}
@@ -194,7 +188,14 @@ type methodDesc struct {
 }
 
 type RequestField struct {
-	Name string
+	ProtoName string
+	GoName    string
+	GoType    string
+	ConvExpr  []*Exprs
+}
+
+type Exprs struct {
+	Expr string
 }
 
 func (s *serviceDesc) execute(tpl string) string {

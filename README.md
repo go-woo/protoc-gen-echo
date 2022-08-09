@@ -159,8 +159,6 @@ If you want to support JWT, can add it. Else you can comment it.
 
 * `protoc-gen-echo` follow [google.api.httprule](https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api#http).
 
-* The path/query param name must be lower case.
-
 * [ent](https://github.com/ent/ent) still does not support message nesting, so proto http rule body must be *.
 
 ## Generate gRPC
