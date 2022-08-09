@@ -1,7 +1,7 @@
 // Auth use data type.
 // versions:
 // - protoc-gen-echo v0.0.5
-// - protoc  v3.12.4
+// - protoc  v3.14.0
 // source: example/v1/greeter.proto
 
 package v1

@@ -8,13 +8,11 @@ import (
 
 var routerTemplate = `
 import (
-	"fmt"
-	"net/http"
 	"os"
 	"strconv"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4/middleware"
 )
 var _ strconv.NumError
@@ -60,14 +58,7 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 		{{.ConvExpr}}
 	}
 	{{- end}}
-	{{- if .InScope}}
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*jwtCustomClaims)
-	username := claims.Name
-	fmt.Printf("Got jwt name is: %v\n", username)
-	req.Username = username
-	{{end}}
-	reply, err := {{$svrType}}{{.Name}}BusinessHandler(req)
+	reply, err := {{$svrType}}{{.Name}}BusinessHandler(req, c)
 	if err != nil {
 		return err
 	}
@@ -78,24 +69,24 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 
 var handlerTemplate = `
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt"
-	"github.com/labstack/echo/v4"
 	"os"
 	"time"
+	"encoding/json"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/labstack/echo/v4"
 )
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
 {{$hasJwt := .HasJwt}}
 {{range .Methods}}
-func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error) {
+func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}, c echo.Context) ({{.Reply}}, error) {
 	{{- if .IsLogin}}
 	// Throws unauthorized error
 	if req.Username != "hello" || req.Password != "world" {
-		return {{.Reply}}{ }, echo.ErrUnauthorized
+		return {{.Reply}}{}, echo.ErrUnauthorized
 	}
-
 	// Set custom claims
 	claims := &jwtCustomClaims{
 		"Hello World",
@@ -104,10 +95,8 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error)
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},
 	}
-
 	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
 	// Generate encoded token and send it as response.
 	jk := "dangerous"
 	if os.Getenv("JWTKEY") != "" {
@@ -115,23 +104,27 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}) ({{.Reply}}, error)
 	}
 	t, err := token.SignedString([]byte(jk))
 	if err != nil {
-		return {{.Reply}}{ }, err
+		return {{.Reply}}{}, err
 	}
 	{{end}}
+	{{- if .InScope}}
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*jwtCustomClaims)
+	username := claims.Name
+	fmt.Printf("Got jwt name is: %v\n", username)
+	req.Username = username
+	{{end}}
 	// Here can put your business logic,protoc-gen-ent soon coming
-	//Below is example business logic code
-
+	// Below is example business logic code
 	rj, err := json.Marshal(req)
 	if err != nil {
-		return {{.Reply}}{ }, err
+		return {{.Reply}}{}, err
 	}
 	fmt.Printf("Got {{.Request}} is: %v\n", string(rj))
-
 	{{- if .IsLogin}}
 	return {{.Reply}}{Token: "Bearer " + t}, nil
 	{{- else}}
-	return {{.Reply}}{ }, nil
-	{{end}}
+	return {{.Reply}}{}, nil {{end}}
 }
 {{end}}
 `
