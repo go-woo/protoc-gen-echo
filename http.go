@@ -3,15 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"os"
-	"regexp"
-	"strings"
-
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"os"
+	"regexp"
+	"strings"
 )
 
 var methodSets = make(map[string]int)
@@ -350,6 +349,9 @@ func replacePath(name string, value string, path string) string {
 }
 
 func buildExpr(protoName, goName string, fd protoreflect.FieldDescriptor) string {
+	if fd.IsMap() || fd.IsList() { //google http rule do not support
+		return "return http.ErrNotSupported"
+	}
 	switch fd.Kind() {
 	case protoreflect.BoolKind:
 		return fmt.Sprintf(`if cv, err := strconv.ParseBool(v); err != nil {
@@ -359,6 +361,7 @@ func buildExpr(protoName, goName string, fd protoreflect.FieldDescriptor) string
 		}`, goName)
 	case protoreflect.EnumKind: //Todo
 		return fmt.Sprintf("return http.ErrNotSupported")
+
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
 		return fmt.Sprintf(`if cv, err := strconv.ParseInt(v, 10, 32); err != nil {
 			return http.ErrNotSupported
@@ -403,11 +406,88 @@ func buildExpr(protoName, goName string, fd protoreflect.FieldDescriptor) string
 		}else{
 			req.%v = cv
 		}`, goName)
-	case protoreflect.MessageKind, protoreflect.GroupKind: //Todo
-		return fmt.Sprintf("return http.ErrNotSupported")
+	case protoreflect.MessageKind, protoreflect.GroupKind:
+		return parseMessage(fd.Message(), goName)
 	default:
 		return fmt.Sprintf("return http.ErrNotSupported")
 	}
+}
+
+func parseMessage(md protoreflect.MessageDescriptor, goName string) string {
+	switch md.FullName() {
+	case "google.protobuf.Timestamp":
+		return fmt.Sprintf(`if cv, err := time.Parse(time.RFC3339Nano, v); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case "google.protobuf.Duration":
+		return fmt.Sprintf(`if cv, err := time.ParseDuration(v); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case "google.protobuf.DoubleValue":
+		return fmt.Sprintf(`if cv, err := strconv.ParseFloat(v, 64); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case "google.protobuf.FloatValue":
+		return fmt.Sprintf(`if cv, err := strconv.ParseFloat(v, 32); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = float32(cv)
+		}`, goName)
+	case "google.protobuf.Int64Value":
+		return fmt.Sprintf(`if cv, err := strconv.ParseInt(v, 10, 64); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case "google.protobuf.Int32Value":
+		return fmt.Sprintf(`if cv, err := strconv.ParseInt(v, 10, 32); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = int32(cv)
+		}`, goName)
+	case "google.protobuf.UInt64Value":
+		return fmt.Sprintf(`if cv, err := strconv.ParseUint(v, 10, 64); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case "google.protobuf.UInt32Value":
+		return fmt.Sprintf(`if cv, err := strconv.ParseUint(v, 10, 32); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = uint32(cv)
+		}`, goName)
+	case "google.protobuf.BoolValue":
+		return fmt.Sprintf(`if cv, err := strconv.ParseBool(v); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case "google.protobuf.StringValue":
+		return fmt.Sprintf("req.%v = v", goName)
+	case "google.protobuf.BytesValue":
+		return fmt.Sprintf(`if cv, err := base64.StdEncoding.DecodeString(v); err != nil {
+			return http.ErrNotSupported
+		}else{
+			req.%v = cv
+		}`, goName)
+	case "google.protobuf.FieldMask":
+		return "return http.ErrNotSupported"
+	case "google.protobuf.Value":
+		return "return http.ErrNotSupported"
+	case "google.protobuf.Struct":
+		return "return http.ErrNotSupported"
+	default:
+		return "return http.ErrNotSupported"
+	}
+
+	return "return http.ErrNotSupported"
 }
 
 func camelCaseVars(s string) string {

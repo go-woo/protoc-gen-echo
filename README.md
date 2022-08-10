@@ -80,7 +80,7 @@ func _Greeter_SayHello0_HTTP_Handler(c echo.Context) error {
 
 	req.Name = c.Param(strings.ToLower("Name"))
 	req.Nice = c.Param(strings.ToLower("Nice"))
-	reply, err := GreeterSayHelloBusinessHandler(req)
+	reply, err := GreeterSayHelloBusinessHandler(req, c)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func _Greeter_SayHello0_HTTP_Handler(c echo.Context) error {
 Our focus is on `GreeterSayHelloBusinessHandler(payload)`.
 In `greeter_handler.pb.go`, you can write business logic.
 ``` 
-func GreeterSayHelloBusinessHandler(req *HelloRequest) (HelloReply, error) {
+func GreeterSayHelloBusinessHandler(req *HelloRequest, c echo.Context) (HelloReply, error) {
 	// Here can put your business logic,protoc-gen-ent soon coming
 	reqJson, err := json.Marshal(req)
 	if err != nil {
@@ -119,7 +119,8 @@ func main() {
 	e.Use(middleware.Recover())
 
 	v1.RegisterGreeterRouter(e)
-	//you can add custom router outside protoc-gen-echo too.
+	// you can add custom router outside protoc-gen-echo too.
+	// MyCustomRouter(e)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
@@ -157,7 +158,7 @@ If you want to support JWT, can add it. Else you can comment it.
 
 * Validate. Single source(proto) is the most important means to ensure consistency. protobuf message filed validate can use [protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate).
 
-* `protoc-gen-echo` follow [google.api.httprule](https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api#http).But only support simple type,Enum and message type planed.
+* `protoc-gen-echo` follow [google.api.httprule](https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api#http).
 
 * [ent](https://github.com/ent/ent) still does not support message nesting, so proto http rule body must be *.
 

@@ -13,8 +13,8 @@ func main() {
 	e.Use(middleware.Recover())
 
 	v1.RegisterGreeterRouter(e)
-	//you can add custom router outside protoc-gen-echo too.
-	//MyCustomRouter(e)
+	// you can add custom router outside protoc-gen-echo too.
+	// MyCustomRouter(e)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

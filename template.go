@@ -8,14 +8,19 @@ import (
 
 var routerTemplate = `
 import (
+	"encoding/base64"
+	"net/http"
 	"os"
 	"strconv"
-	"net/http"
+	"time"
+	
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 var _ strconv.NumError
+var _ time.Time
+var _ base64.CorruptInputError
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
 {{$hasJwt := .HasJwt}}
