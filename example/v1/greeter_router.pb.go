@@ -7,19 +7,13 @@
 package v1
 
 import (
-	"encoding/base64"
 	"net/http"
 	"os"
-	"strconv"
-	"time"
 
+	"github.com/go-woo/protoc-gen-echo/runtime"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
-
-var _ strconv.NumError
-var _ time.Time
-var _ base64.CorruptInputError
 
 func RegisterGreeterRouter(e *echo.Echo) {
 	jwtKey := "dangerous"
@@ -27,7 +21,7 @@ func RegisterGreeterRouter(e *echo.Echo) {
 		jwtKey = os.Getenv("JWTKEY")
 	}
 	config := middleware.JWTConfig{
-		Claims:     &jwtCustomClaims{},
+		Claims:     &runtime.JwtCustomClaims{},
 		SigningKey: []byte(jwtKey),
 	}
 
@@ -50,54 +44,8 @@ func RegisterGreeterRouter(e *echo.Echo) {
 
 func _Greeter_SayHello0_HTTP_Handler(c echo.Context) error {
 	var req *HelloRequest = new(HelloRequest)
-	if v := c.QueryParam("name"); v != "" {
-		if cv, err := strconv.ParseInt(v, 10, 32); err != nil {
-			return http.ErrNotSupported
-		} else {
-			req.Name = int32(cv)
-		}
-	}
-	if v := c.Param("name"); v != "" {
-		if cv, err := strconv.ParseInt(v, 10, 32); err != nil {
-			return http.ErrNotSupported
-		} else {
-			req.Name = int32(cv)
-		}
-	}
-	if v := c.QueryParam("nice"); v != "" {
-		req.Nice = v
-	}
-	if v := c.Param("nice"); v != "" {
-		req.Nice = v
-	}
-	if v := c.QueryParam("uid"); v != "" {
-		if cv, err := strconv.ParseInt(v, 10, 64); err != nil {
-			return http.ErrNotSupported
-		} else {
-			req.Uid = cv
-		}
-	}
-	if v := c.Param("uid"); v != "" {
-		if cv, err := strconv.ParseInt(v, 10, 64); err != nil {
-			return http.ErrNotSupported
-		} else {
-			req.Uid = cv
-		}
-	}
-	if v := c.QueryParam("authed"); v != "" {
-		if cv, err := strconv.ParseBool(v); err != nil {
-			return http.ErrNotSupported
-		} else {
-			req.Authed = cv
-		}
-	}
-	if v := c.Param("authed"); v != "" {
-		if cv, err := strconv.ParseBool(v); err != nil {
-			return http.ErrNotSupported
-		} else {
-			req.Authed = cv
-		}
-	}
+	uv := c.QueryParams()
+	return runtime.BindValues(req, uv)
 	reply, err := GreeterSayHelloBusinessHandler(req, c)
 	if err != nil {
 		return err
@@ -110,18 +58,8 @@ func _Greeter_CreateUser0_HTTP_Handler(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
-	if v := c.QueryParam("username"); v != "" {
-		req.Username = v
-	}
-	if v := c.Param("username"); v != "" {
-		req.Username = v
-	}
-	if v := c.QueryParam("password"); v != "" {
-		req.Password = v
-	}
-	if v := c.Param("password"); v != "" {
-		req.Password = v
-	}
+	uv := c.QueryParams()
+	return runtime.BindValues(req, uv)
 	reply, err := GreeterCreateUserBusinessHandler(req, c)
 	if err != nil {
 		return err
@@ -134,24 +72,8 @@ func _Greeter_UpdateUser0_HTTP_Handler(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
-	if v := c.QueryParam("username"); v != "" {
-		req.Username = v
-	}
-	if v := c.Param("username"); v != "" {
-		req.Username = v
-	}
-	if v := c.QueryParam("phone"); v != "" {
-		req.Phone = v
-	}
-	if v := c.Param("phone"); v != "" {
-		req.Phone = v
-	}
-	if v := c.QueryParam("email"); v != "" {
-		req.Email = v
-	}
-	if v := c.Param("email"); v != "" {
-		req.Email = v
-	}
+	uv := c.QueryParams()
+	return runtime.BindValues(req, uv)
 	reply, err := GreeterUpdateUserBusinessHandler(req, c)
 	if err != nil {
 		return err
@@ -161,18 +83,8 @@ func _Greeter_UpdateUser0_HTTP_Handler(c echo.Context) error {
 
 func _Greeter_DeleteUser0_HTTP_Handler(c echo.Context) error {
 	var req *UserRequest = new(UserRequest)
-	if v := c.QueryParam("phone"); v != "" {
-		req.Phone = v
-	}
-	if v := c.Param("phone"); v != "" {
-		req.Phone = v
-	}
-	if v := c.QueryParam("email"); v != "" {
-		req.Email = v
-	}
-	if v := c.Param("email"); v != "" {
-		req.Email = v
-	}
+	uv := c.QueryParams()
+	return runtime.BindValues(req, uv)
 	reply, err := GreeterDeleteUserBusinessHandler(req, c)
 	if err != nil {
 		return err
@@ -182,18 +94,8 @@ func _Greeter_DeleteUser0_HTTP_Handler(c echo.Context) error {
 
 func _Greeter_ListUsers0_HTTP_Handler(c echo.Context) error {
 	var req *UserRequest = new(UserRequest)
-	if v := c.QueryParam("phone"); v != "" {
-		req.Phone = v
-	}
-	if v := c.Param("phone"); v != "" {
-		req.Phone = v
-	}
-	if v := c.QueryParam("email"); v != "" {
-		req.Email = v
-	}
-	if v := c.Param("email"); v != "" {
-		req.Email = v
-	}
+	uv := c.QueryParams()
+	return runtime.BindValues(req, uv)
 	reply, err := GreeterListUsersBusinessHandler(req, c)
 	if err != nil {
 		return err

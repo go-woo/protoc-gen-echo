@@ -8,19 +8,13 @@ import (
 
 var routerTemplate = `
 import (
-	"encoding/base64"
 	"net/http"
 	"os"
-	"strconv"
-	"time"
-	
 
+	"github.com/go-woo/protoc-gen-echo/runtime"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
-var _ strconv.NumError
-var _ time.Time
-var _ base64.CorruptInputError
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
 {{$hasJwt := .HasJwt}}
@@ -31,7 +25,7 @@ func Register{{.ServiceType}}Router(e *echo.Echo) {
 		jwtKey = os.Getenv("JWTKEY")
 	}
 	config := middleware.JWTConfig{
-		Claims:     &jwtCustomClaims{},
+		Claims:     &runtime.JwtCustomClaims{},
 		SigningKey: []byte(jwtKey),
 	}
 	{{end}}
@@ -55,14 +49,11 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 		return err
 	}
 	{{- end}}
+	uv := c.QueryParams()
 	{{- range .Fields}}
-	if v := c.QueryParam("{{.ProtoName}}"); v != "" {
-		{{.ConvExpr}}
-	}
-	if v := c.Param("{{.ProtoName}}"); v != "" {
-		{{.ConvExpr}}
-	}
+	uv.Add("{{.ProtoName}}", c.Param("{{.ProtoName}}"))
 	{{- end}}
+	return runtime.BindValues(req, uv)
 	reply, err := {{$svrType}}{{.Name}}BusinessHandler(req, c)
 	if err != nil {
 		return err
@@ -74,11 +65,12 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(c echo.Context) error {
 
 var handlerTemplate = `
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
-	"encoding/json"
 
+	"github.com/go-woo/protoc-gen-echo/runtime"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
@@ -93,7 +85,7 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}, c echo.Context) ({{
 		return {{.Reply}}{}, echo.ErrUnauthorized
 	}
 	// Set custom claims
-	claims := &jwtCustomClaims{
+	claims := &runtime.JwtCustomClaims{
 		"Hello World",
 		true,
 		jwt.StandardClaims{
@@ -114,7 +106,7 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}, c echo.Context) ({{
 	{{end}}
 	{{- if .InScope}}
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*jwtCustomClaims)
+	claims := user.Claims.(*runtime.JwtCustomClaims)
 	username := claims.Name
 	fmt.Printf("Got jwt name is: %v\n", username)
 	req.Username = username

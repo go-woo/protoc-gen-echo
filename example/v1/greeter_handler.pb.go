@@ -1,7 +1,7 @@
 // The business logic.
 // versions:
 // - protoc-gen-echo v0.0.5
-// - protoc  v3.14.0
+// - protoc  v3.12.4
 // source: example/v1/greeter.proto
 
 package v1
@@ -12,6 +12,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-woo/protoc-gen-echo/runtime"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
@@ -33,7 +34,7 @@ func GreeterCreateUserBusinessHandler(req *CreateUserRequest, c echo.Context) (C
 		return CreateUserReply{}, echo.ErrUnauthorized
 	}
 	// Set custom claims
-	claims := &jwtCustomClaims{
+	claims := &runtime.JwtCustomClaims{
 		"Hello World",
 		true,
 		jwt.StandardClaims{
@@ -64,7 +65,7 @@ func GreeterCreateUserBusinessHandler(req *CreateUserRequest, c echo.Context) (C
 
 func GreeterUpdateUserBusinessHandler(req *UpdateUserRequest, c echo.Context) (UpdateUserReply, error) {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*jwtCustomClaims)
+	claims := user.Claims.(*runtime.JwtCustomClaims)
 	username := claims.Name
 	fmt.Printf("Got jwt name is: %v\n", username)
 	req.Username = username

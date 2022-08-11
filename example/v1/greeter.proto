@@ -65,10 +65,20 @@ service Greeter {
 
 // The request message containing the user's name.
 message HelloRequest {
+  enum Corpus {
+    UNIVERSAL = 0;
+    WEB = 1;
+    IMAGES = 2;
+    LOCAL = 3;
+    NEWS = 4;
+    PRODUCTS = 5;
+    VIDEO = 6;
+  }
   int32 name = 1;
   string nice = 2;
   int64 uid = 3;
   bool authed = 4;
+  Corpus corpus = 5;
 }
 
 // The response message containing the greetings
@@ -100,11 +110,21 @@ message UpdateUserReply {
   string username = 2;
 }
 
-
+enum Foo {
+  DEFAULT_BAR = 0;
+  BAR_BELLS = 1;
+  BAR_B_CUE = 2;
+}
 // The request message containing the user's name.
 message UserRequest {
   string phone = 1;
   string email = 2;
+  Foo foo = 3;
+  UserAddr user_addr = 4;
+}
+
+message UserAddr {
+  string addr = 1;
 }
 
 // The response message containing the greetings
