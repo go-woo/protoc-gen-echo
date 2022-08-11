@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	version     = "v0.0.5"
+	version     = "v0.1.0"
 	showVersion = flag.Bool("version", false, "print the version and exit")
 	omitempty   = flag.Bool("omitempty", true, "omit if google.api is empty")
 )
