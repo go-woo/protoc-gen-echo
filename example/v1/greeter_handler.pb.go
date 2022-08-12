@@ -1,6 +1,6 @@
 // The business logic.
 // versions:
-// - protoc-gen-echo v0.0.5
+// - protoc-gen-echo v0.1.1
 // - protoc  v3.12.4
 // source: example/v1/greeter.proto
 
@@ -35,9 +35,9 @@ func GreeterCreateUserBusinessHandler(req *CreateUserRequest, c echo.Context) (C
 	}
 	// Set custom claims
 	claims := &runtime.JwtCustomClaims{
-		"Hello World",
-		true,
-		jwt.StandardClaims{
+		Name:  "Hello World",
+		Admin: true,
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},
 	}

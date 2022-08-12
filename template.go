@@ -86,9 +86,9 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}, c echo.Context) ({{
 	}
 	// Set custom claims
 	claims := &runtime.JwtCustomClaims{
-		"Hello World",
-		true,
-		jwt.StandardClaims{
+		Name:  "Hello World",
+		Admin: true,
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		},
 	}

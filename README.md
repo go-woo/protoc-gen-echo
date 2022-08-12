@@ -205,3 +205,11 @@ protoc --proto_path=. \
     --validate_out="lang=go:." \
     ./example/v1/greeter.proto
 ```
+
+## Todo
+* Add generate jwt openapi/swagger support
+``` 
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
+https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#securitySchemeObject
+https://github.com/grpc-ecosystem/grpc-gateway/blob/master/examples/internal/proto/examplepb/a_bit_of_everything.proto
+```
