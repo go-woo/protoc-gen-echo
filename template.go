@@ -111,7 +111,7 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}, c echo.Context) ({{
 	fmt.Printf("Got jwt name is: %v\n", username)
 	req.Username = username
 	{{end}}
-	// Here can put your business logic,protoc-gen-ent soon coming
+	// Here can put your business logic, can use ORM:github.com/go-woo/protoc-gen-ent
 	// Below is example business logic code
 	rj, err := json.Marshal(req)
 	if err != nil {
