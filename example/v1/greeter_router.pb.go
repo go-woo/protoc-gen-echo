@@ -21,7 +21,7 @@ func RegisterGreeterRouter(e *echo.Echo) {
 		jwtKey = os.Getenv("JWTKEY")
 	}
 	config := middleware.JWTConfig{
-		Claims:     &runtime.JwtCustomClaims{},
+		Claims:     &JwtCustomClaims{},
 		SigningKey: []byte(jwtKey),
 	}
 

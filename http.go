@@ -75,8 +75,10 @@ func generateAuthTypeFile(gen *protogen.Plugin, file *protogen.File, omitempty b
 	if last := strings.LastIndex(file.GeneratedFilenamePrefix, "/"); last != -1 {
 		authFile = file.GeneratedFilenamePrefix[0:last] + "/auth_type.pb.go"
 	}
-
-	//fmt.Fprintf(os.Stderr, "auth=======file%v\n", authFile)
+	//if file exist should don't generate
+	if _, err := os.Stat(authFile); !errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
 
 	g := gen.NewGeneratedFile(authFile, file.GoImportPath)
 	g.P("// Auth use data type.")

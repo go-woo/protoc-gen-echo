@@ -25,7 +25,7 @@ func Register{{.ServiceType}}Router(e *echo.Echo) {
 		jwtKey = os.Getenv("JWTKEY")
 	}
 	config := middleware.JWTConfig{
-		Claims:     &runtime.JwtCustomClaims{},
+		Claims:     &JwtCustomClaims{},
 		SigningKey: []byte(jwtKey),
 	}
 	{{end}}
@@ -85,7 +85,7 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}, c echo.Context) ({{
 		return {{.Reply}}{}, echo.ErrUnauthorized
 	}
 	// Set custom claims
-	claims := &runtime.JwtCustomClaims{
+	claims := &JwtCustomClaims{
 		Name:  "Hello World",
 		Admin: true,
 		StandardClaims: jwt.StandardClaims{
@@ -106,7 +106,7 @@ func {{$svrType}}{{.Name}}BusinessHandler(req *{{.Request}}, c echo.Context) ({{
 	{{end}}
 	{{- if .InScope}}
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*runtime.JwtCustomClaims)
+	claims := user.Claims.(*JwtCustomClaims)
 	username := claims.Name
 	fmt.Printf("Got jwt name is: %v\n", username)
 	req.Username = username
@@ -131,7 +131,7 @@ import "github.com/golang-jwt/jwt"
 
 // jwtCustomClaims are custom claims extending default ones.
 // See https://github.com/golang-jwt/jwt for more examples
-type jwtCustomClaims struct {
+type JwtCustomClaims struct {
 	Name  string ` + "`json:\"name\"`" + `
 	Admin bool   ` + "`json:\"admin\"`" + `
 	jwt.StandardClaims

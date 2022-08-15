@@ -12,13 +12,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-woo/protoc-gen-echo/runtime"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
 func GreeterSayHelloBusinessHandler(req *HelloRequest, c echo.Context) (HelloReply, error) {
-	// Here can put your business logic,protoc-gen-ent soon coming
+	// Here can put your business logic, can use ORM:github.com/go-woo/protoc-gen-ent
 	// Below is example business logic code
 	rj, err := json.Marshal(req)
 	if err != nil {
@@ -34,7 +33,7 @@ func GreeterCreateUserBusinessHandler(req *CreateUserRequest, c echo.Context) (C
 		return CreateUserReply{}, echo.ErrUnauthorized
 	}
 	// Set custom claims
-	claims := &runtime.JwtCustomClaims{
+	claims := &JwtCustomClaims{
 		Name:  "Hello World",
 		Admin: true,
 		StandardClaims: jwt.StandardClaims{
@@ -53,7 +52,7 @@ func GreeterCreateUserBusinessHandler(req *CreateUserRequest, c echo.Context) (C
 		return CreateUserReply{}, err
 	}
 
-	// Here can put your business logic,protoc-gen-ent soon coming
+	// Here can put your business logic, can use ORM:github.com/go-woo/protoc-gen-ent
 	// Below is example business logic code
 	rj, err := json.Marshal(req)
 	if err != nil {
@@ -65,12 +64,12 @@ func GreeterCreateUserBusinessHandler(req *CreateUserRequest, c echo.Context) (C
 
 func GreeterUpdateUserBusinessHandler(req *UpdateUserRequest, c echo.Context) (UpdateUserReply, error) {
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*runtime.JwtCustomClaims)
+	claims := user.Claims.(*JwtCustomClaims)
 	username := claims.Name
 	fmt.Printf("Got jwt name is: %v\n", username)
 	req.Username = username
 
-	// Here can put your business logic,protoc-gen-ent soon coming
+	// Here can put your business logic, can use ORM:github.com/go-woo/protoc-gen-ent
 	// Below is example business logic code
 	rj, err := json.Marshal(req)
 	if err != nil {
@@ -81,7 +80,7 @@ func GreeterUpdateUserBusinessHandler(req *UpdateUserRequest, c echo.Context) (U
 }
 
 func GreeterDeleteUserBusinessHandler(req *UserRequest, c echo.Context) (UserReply, error) {
-	// Here can put your business logic,protoc-gen-ent soon coming
+	// Here can put your business logic, can use ORM:github.com/go-woo/protoc-gen-ent
 	// Below is example business logic code
 	rj, err := json.Marshal(req)
 	if err != nil {
@@ -92,7 +91,7 @@ func GreeterDeleteUserBusinessHandler(req *UserRequest, c echo.Context) (UserRep
 }
 
 func GreeterListUsersBusinessHandler(req *UserRequest, c echo.Context) (UserReplys, error) {
-	// Here can put your business logic,protoc-gen-ent soon coming
+	// Here can put your business logic, can use ORM:github.com/go-woo/protoc-gen-ent
 	// Below is example business logic code
 	rj, err := json.Marshal(req)
 	if err != nil {

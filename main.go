@@ -29,7 +29,7 @@ func main() {
 			}
 			generateRouterFile(gen, f, *omitempty)
 			generateHandlerFile(gen, f, *omitempty)
-			//generateAuthTypeFile(gen, f, *omitempty)
+			generateAuthTypeFile(gen, f, *omitempty)
 		}
 		return nil
 	})
